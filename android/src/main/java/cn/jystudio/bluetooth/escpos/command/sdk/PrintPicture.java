@@ -222,7 +222,7 @@ public class PrintPicture {
             //ESC * 0 xL xH ...
             data[var10 + 0] = 27;// ESC
             data[var10 + 1] = 42;//*
-            data[var10 + 2] = 0;//0
+            data[var10 + 2] = 48;//0
             data[var10 + 3] = (byte) (nBytesPerLine % 256);//xL
             data[var10 + 4] = (byte) (nBytesPerLine / 256);//xH
 
