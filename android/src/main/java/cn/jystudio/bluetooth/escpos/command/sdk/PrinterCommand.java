@@ -207,6 +207,22 @@ public class PrinterCommand {
         return data;
     }
 
+    public static byte[] POS_Print_Text(String string, int align) {
+        if (string == null) {
+            return null;
+        }
+
+        byte[] escSAlign = POS_S_Align(align);
+        byte[] pbString = null;
+        try {
+            pbString = string.replace("\n", "\n" + new String(escSAlign, "US-ASCII")).getBytes("US-ASCII");
+            return concatAll(escSAlign, pbString);
+        } catch (UnsupportedEncodingException e) {
+            return null;
+        }
+
+    }
+
     /**
      * 打印文本文档
      *

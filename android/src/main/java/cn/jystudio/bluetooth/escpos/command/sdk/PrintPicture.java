@@ -44,7 +44,7 @@ public class PrintPicture {
      * @param nMode
      * @return
      */
-    public static byte[] POS_PrintBMP(Bitmap mBitmap, int nWidth, int nMode, int leftPadding) {
+    public static byte[] POS_PrintBMP(Bitmap mBitmap, int nWidth, int nMode, int leftPadding, boolean esc) {
         // 先转黑白，再调用函数缩放位图
         int width = ((nWidth + 7) / 8) * 8;
         int height = mBitmap.getHeight() * width / mBitmap.getWidth();
@@ -63,7 +63,7 @@ public class PrintPicture {
 
         byte[] dithered = thresholdToBWPic(grayBitmap);
 
-        byte[] data = eachLinePixToCmd(dithered, width+left, nMode);
+        byte[] data = esc ? eachLinePixToCmdEsc(dithered, width+left) : eachLinePixToCmd(dithered, width+left, nMode);
 
         return data;
     }
@@ -203,6 +203,31 @@ public class PrintPicture {
 
             for (int j = 0; j < nBytesPerLine; ++j) {
                 data[var10 + 8 + j] = (byte) (p0[src[k]] + p1[src[k + 1]] + p2[src[k + 2]] + p3[src[k + 3]] + p4[src[k + 4]] + p5[src[k + 5]] + p6[src[k + 6]] + src[k + 7]);
+                k += 8;
+            }
+        }
+
+        return data;
+    }
+
+    public static byte[] eachLinePixToCmdEsc(byte[] src, int nWidth) {
+        int nHeight = src.length / nWidth;
+        int nBytesPerLine = nWidth / 8;
+        byte[] data = new byte[nHeight * (8 + nBytesPerLine)];
+        boolean offset = false;
+        int k = 0;
+
+        for (int i = 0; i < nHeight; ++i) {
+            int var10 = i * (8 + nBytesPerLine);
+            //ESC * 0 xL xH ...
+            data[var10 + 0] = 27;// ESC
+            data[var10 + 1] = 42;//*
+            data[var10 + 2] = 0;//0
+            data[var10 + 3] = (byte) (nBytesPerLine % 256);//xL
+            data[var10 + 4] = (byte) (nBytesPerLine / 256);//xH
+
+            for (int j = 0; j < nBytesPerLine; ++j) {
+                data[var10 + 5 + j] = (byte) (p0[src[k]] + p1[src[k + 1]] + p2[src[k + 2]] + p3[src[k + 3]] + p4[src[k + 4]] + p5[src[k + 5]] + p6[src[k + 6]] + src[k + 7]);
                 k += 8;
             }
         }

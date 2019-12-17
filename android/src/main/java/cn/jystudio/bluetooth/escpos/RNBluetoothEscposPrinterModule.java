@@ -128,6 +128,25 @@ public class RNBluetoothEscposPrinterModule extends ReactContextBaseJavaModule
         }
     }
 
+    @ReactMethod
+    public void printSimpleText(String text, @Nullable  ReadableMap options, final Promise promise) {
+        try {
+            int align = 0;
+
+            if (options != null) {
+                align = options.hasKey("align") ? options.getInt("align") : align;
+            }
+
+            byte[] bytes = PrinterCommand.POS_Print_Text(text, align);
+            if (sendDataByte(bytes)) {
+                promise.resolve(null);
+            } else {
+                promise.reject("COMMAND_NOT_SEND");
+            }
+        }catch (Exception e){
+            promise.reject(e.getMessage(),e);
+        }
+    }
 
     @ReactMethod
     public void printText(String text, @Nullable  ReadableMap options, final Promise promise) {
@@ -319,9 +338,11 @@ public class RNBluetoothEscposPrinterModule extends ReactContextBaseJavaModule
     public void printPic(String base64encodeStr, @Nullable  ReadableMap options) {
         int width = 0;
         int leftPadding = 0;
+        boolean esc = false;
         if(options!=null){
             width = options.hasKey("width") ? options.getInt("width") : 0;
             leftPadding = options.hasKey("left")?options.getInt("left") : 0;
+            esc = options.hasKey("esc")?options.getBoolean("esc") : false;
         }
 
         //cannot larger then devicesWith;
@@ -340,11 +361,16 @@ public class RNBluetoothEscposPrinterModule extends ReactContextBaseJavaModule
              * nMode    打印模式
              * Returns: byte[]
              */
-            byte[] data = PrintPicture.POS_PrintBMP(mBitmap, width, nMode, leftPadding);
+            byte[] data = PrintPicture.POS_PrintBMP(mBitmap, width, nMode, leftPadding, esc);
             //	SendDataByte(buffer);
             // sendDataByte(Command.ESC_Init);
             // sendDataByte(Command.LF);
             sendDataByte(data);
+
+            if (esc) {
+                sendDataByte(Command.ESC_2);
+            }
+
             // sendDataByte(PrinterCommand.POS_Set_PrtAndFeedPaper(30));
             // sendDataByte(PrinterCommand.POS_Set_Cut(1));
             // sendDataByte(PrinterCommand.POS_Set_PrtInit());
@@ -383,7 +409,7 @@ public class RNBluetoothEscposPrinterModule extends ReactContextBaseJavaModule
     }
 
     @ReactMethod
-    public void printQRCode(String content, int size, int correctionLevel, int leftPadding, final Promise promise) {
+    public void printQRCode(String content, int size, int correctionLevel, int leftPadding, boolean esc, final Promise promise) {
         try {
             Log.i(TAG, "生成的文本：" + content);
             // 把输入的文本转为二维码
@@ -416,7 +442,7 @@ public class RNBluetoothEscposPrinterModule extends ReactContextBaseJavaModule
             bitmap.setPixels(pixels, 0, width, 0, 0, width, height);
 
             //TODO: may need a left padding to align center.
-            byte[] data = PrintPicture.POS_PrintBMP(bitmap, size, 0, leftPadding);
+            byte[] data = PrintPicture.POS_PrintBMP(bitmap, size, 0, leftPadding, esc);
             if (sendDataByte(data)) {
                 promise.resolve(null);
             } else {
