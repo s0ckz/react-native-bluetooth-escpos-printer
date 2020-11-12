@@ -210,21 +210,24 @@ public class BluetoothService {
             BluetoothSocket tmp = null;
 
             // try to connect with socket inner method firstly.
-            for(int i=1;i<=3;i++) {
-                try {
-                    tmp = (BluetoothSocket) mmDevice.getClass().getMethod("createRfcommSocket", int.class).invoke(mmDevice, i);
-                } catch (Exception e) {
-                }
-                if(tmp!=null){
-                    mmSocket = tmp;
-                    break;
-                }
-            }
+//            for(int i=1;i<=3;i++) {
+//                try {
+//                    tmp = (BluetoothSocket) mmDevice.getClass().getMethod("createRfcommSocket", int.class).invoke(mmDevice, i);
+//                } catch (Exception e) {
+//                }
+//                if(tmp!=null){
+//                    mmSocket = tmp;
+//                    break;
+//                }
+//            }
 
             // try with given uuid
             if(mmSocket == null) {
                 try {
-                    tmp = mmDevice.createRfcommSocketToServiceRecord(MY_UUID);
+                    UUID uuid = mmDevice.getUuids()[0].getUuid();
+
+                    Log.i(TAG, "UUID used: " + uuid);
+                    tmp = mmDevice.createRfcommSocketToServiceRecord(uuid);
                 } catch (IOException e) {
                     e.printStackTrace();
                     Log.e(TAG, "create() failed", e);
