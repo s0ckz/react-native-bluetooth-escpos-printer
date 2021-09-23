@@ -137,7 +137,9 @@ public class RNBluetoothEscposPrinterModule extends ReactContextBaseJavaModule
                 align = options.hasKey("align") ? options.getInt("align") : align;
             }
 
-            byte[] bytes = PrinterCommand.POS_Print_Text(text, align);
+            boolean raw = options != null && options.hasKey("raw") && options.getBoolean("raw");
+
+            byte[] bytes = raw ? PrinterCommand.POS_Raw_Data(text) : PrinterCommand.POS_Print_Text(text, align);
             if (sendDataByte(bytes)) {
                 promise.resolve(null);
             } else {

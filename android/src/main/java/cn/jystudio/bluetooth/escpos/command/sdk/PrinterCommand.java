@@ -223,6 +223,19 @@ public class PrinterCommand {
 
     }
 
+    public static byte[] POS_Raw_Data(String string) {
+        if (string == null) {
+            return null;
+        }
+
+        try {
+            return string.getBytes("US-ASCII");
+        } catch (UnsupportedEncodingException e) {
+            return null;
+        }
+
+    }
+
     /**
      * 打印文本文档
      *
