@@ -11,6 +11,8 @@ import android.util.Log;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.*;
 import java.lang.reflect.Method;
 
@@ -171,9 +173,9 @@ public class BluetoothService {
     /**
      * Indicate that the connection attempt failed.
      */
-    private void connectionFailed() {
+    private void connectionFailed(Map<String, Object> bundle) {
         setState(STATE_NONE, null);
-        infoObervers(MESSAGE_UNABLE_CONNECT, null);
+        infoObervers(MESSAGE_UNABLE_CONNECT, bundle);
     }
 
     /**
@@ -211,6 +213,7 @@ public class BluetoothService {
 
             // try with given uuid
             if(mmSocket == null && mmDevice.getUuids() != null && mmDevice.getUuids().length > 1 && mmDevice.getUuids()[0] != null && mmDevice.getUuids()[0].getUuid() != null) {
+                String sStackTrace = "";
                 try {
                     UUID uuid = mmDevice.getUuids()[0].getUuid();
 
@@ -218,11 +221,15 @@ public class BluetoothService {
                     tmp = mmDevice.createRfcommSocketToServiceRecord(uuid);
                 } catch (IOException e) {
                     e.printStackTrace();
+                    StringWriter sw = new StringWriter();
+                    PrintWriter pw = new PrintWriter(sw);
+                    e.printStackTrace(pw);
+                    sStackTrace = sw.toString();
                     Log.e(TAG, "create() failed", e);
                 }
                 if (tmp == null) {
                     Log.e(TAG, "create() failed: Socket NULL.");
-                    connectionFailed();
+                    connectionFailed(Collections.singletonMap("step", "tmp == null. stackTrace: " + sStackTrace));
                     return;
                 }
             }
@@ -249,7 +256,10 @@ public class BluetoothService {
                 mmSocket.connect();
             } catch (Exception e) {
                 e.printStackTrace();
-                connectionFailed();
+                StringWriter sw = new StringWriter();
+                PrintWriter pw = new PrintWriter(sw);
+                e.printStackTrace(pw);
+                connectionFailed(Collections.singletonMap("step", "mmSocket.connect. stackTrace: " + sw.toString()));
                 // Close the socket
                 try {
                     mmSocket.close();

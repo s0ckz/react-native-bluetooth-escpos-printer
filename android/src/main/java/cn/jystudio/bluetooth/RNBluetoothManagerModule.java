@@ -140,9 +140,10 @@ public class RNBluetoothManagerModule extends ReactContextBaseJavaModule
         } else {
             if (ActivityCompat.checkSelfPermission(reactContext, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED
                     || ActivityCompat.checkSelfPermission(reactContext, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED
+                    || ActivityCompat.checkSelfPermission(reactContext, Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED
                     || ActivityCompat.checkSelfPermission(reactContext, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(reactContext.getCurrentActivity(),
-                        new String[]{Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.ACCESS_COARSE_LOCATION},
+                        new String[]{Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.BLUETOOTH, Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.ACCESS_COARSE_LOCATION},
                         REQUEST_ENABLE_BT_PERMISSION);
                 promise.reject("BT NOT ENABLED");
                 //promiseMap.put(PROMISE_ENABLE_BT_PERMISSION, promise);
@@ -193,9 +194,10 @@ public class RNBluetoothManagerModule extends ReactContextBaseJavaModule
         }else {
             if (ActivityCompat.checkSelfPermission(reactContext, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED
                     || ActivityCompat.checkSelfPermission(reactContext, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED
+                    || ActivityCompat.checkSelfPermission(reactContext, Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED
                     || ActivityCompat.checkSelfPermission(reactContext, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(reactContext.getCurrentActivity(),
-                        new String[]{Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.ACCESS_COARSE_LOCATION},
+                        new String[]{Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.BLUETOOTH, Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.ACCESS_COARSE_LOCATION},
                         REQUEST_SCAN_DEVICES_PERMISSION);
                 promise.reject("DISCOVER", "NOT_STARTED");
 //                promiseMap.put(PROMISE_SCAN_PERMISSION, promise);
@@ -232,6 +234,15 @@ public class RNBluetoothManagerModule extends ReactContextBaseJavaModule
 
     @ReactMethod
     public void connect(String address, final Promise promise) {
+        if (ActivityCompat.checkSelfPermission(reactContext, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(reactContext.getCurrentActivity(),
+                    new String[]{Manifest.permission.BLUETOOTH_CONNECT},
+                    REQUEST_SCAN_DEVICES_PERMISSION);
+            // TODO
+//            promise.reject("BT NOT ENABLED");
+            return;
+        }
+
         BluetoothAdapter adapter = this.getBluetoothAdapter();
         if (adapter!=null && adapter.isEnabled()) {
             BluetoothDevice device = adapter.getRemoteDevice(address);
@@ -518,7 +529,7 @@ public class RNBluetoothManagerModule extends ReactContextBaseJavaModule
                 if (p == null) {
                     emitRNEvent(EVENT_UNABLE_CONNECT, null);
                 } else {
-                    p.reject("Unable to connect device");
+                    p.reject("Unable to connect device: " + bundle);
                 }
 
                 break;
